@@ -1,0 +1,7 @@
+name: 'Composer Rich Diff Action'
+description: 'Creates a readable diff of any changes made to Composer requirements and/or locked packages.'
+author: 'Chris Smith'
+inputs: {}
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
