@@ -5,7 +5,7 @@ export function render(
     baseRef: string,
     headRef: string,
     diff: ComposerDiff
-) {
+): string {
     const message = new Array<string>();
 
     message.push(`## Changes to \`${composerJson}\``);

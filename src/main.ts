@@ -23,31 +23,45 @@ async function run(): Promise<void> {
                 context.payload.pull_request.head.sha,
                 composerJson
             );
-            const message = render(
-                composerJson,
-                context.payload.pull_request.base.sha,
-                context.payload.pull_request.head.sha,
-                diff
-            );
+
             const commentId = await findCommentId(
                 octokit,
                 context,
                 commentCanary
             );
 
-            if (commentId) {
-                await octokit.rest.issues.updateComment({
-                    ...context.repo,
-                    issue_number: context.payload.pull_request.number,
-                    comment_id: commentId,
-                    body: commentCanary + message,
-                });
+            if (diff.manifest.size > 0 || diff.lock.size > 0) {
+                const message = render(
+                    composerJson,
+                    context.payload.pull_request.base.sha,
+                    context.payload.pull_request.head.sha,
+                    diff
+                );
+
+                if (commentId) {
+                    await octokit.rest.issues.updateComment({
+                        ...context.repo,
+                        issue_number: context.payload.pull_request.number,
+                        comment_id: commentId,
+                        body: commentCanary + message,
+                    });
+                } else {
+                    await octokit.rest.issues.createComment({
+                        ...context.repo,
+                        issue_number: context.payload.pull_request.number,
+                        body: commentCanary + message,
+                    });
+                }
             } else {
-                await octokit.rest.issues.createComment({
-                    ...context.repo,
-                    issue_number: context.payload.pull_request.number,
-                    body: commentCanary + message,
-                });
+                if (commentId) {
+                    await octokit.rest.issues.deleteComment({
+                        ...context.repo,
+                        issue_number: context.payload.pull_request.number,
+                        comment_id: commentId,
+                    });
+                }
+
+                // Otherwise do nothing...
             }
         }
     } catch (error) {
