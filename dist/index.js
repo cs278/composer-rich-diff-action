@@ -39,7 +39,7 @@ class Diff {
     async generate(owner, repo, baseRef, headRef, path) {
         return Promise.all([
             this.diffManifest(owner, repo, baseRef, headRef, path),
-            this.diffLock(owner, repo, baseRef, headRef, path.replace(/\.json$/, '.lock')),
+            this.diffLock(owner, repo, baseRef, headRef, path.replace(/\.json$/, ".lock")),
         ]).then((result) => {
             for (const i of result[1].values()) {
                 i.direct = result[0].has(i.name);
@@ -57,7 +57,7 @@ class Diff {
             path: path,
             ref: baseRef,
             mediaType: {
-                format: 'raw',
+                format: "raw",
             },
         });
         const head = this.octokit.rest.repos.getContent({
@@ -66,7 +66,7 @@ class Diff {
             path: path,
             ref: headRef,
             mediaType: {
-                format: 'raw',
+                format: "raw",
             },
         });
         return Promise.all([base, head]).then((result) => {
@@ -77,17 +77,26 @@ class Diff {
             }
             const baseObj = JSON.parse(base);
             const headObj = JSON.parse(head);
-            const changes = this.parseManifestChanges(baseObj, headObj, 'require');
-            for (const diff of this.parseManifestChanges(baseObj, headObj, 'require-dev').values()) {
+            const changes = this.parseManifestChanges(baseObj, headObj, "require");
+            for (const diff of this.parseManifestChanges(baseObj, headObj, "require-dev").values()) {
                 const prodDiff = changes.get(diff.name);
                 if (prodDiff) {
                     // Change for the same package exists already.
-                    const baseConstraint = diff.operation === Operation.Added ? prodDiff.base : diff.base;
-                    const headConstraint = diff.operation === Operation.Added ? diff.head : prodDiff.head;
+                    const baseConstraint = diff.operation === Operation.Added
+                        ? prodDiff.base
+                        : diff.base;
+                    const headConstraint = diff.operation === Operation.Added
+                        ? diff.head
+                        : prodDiff.head;
                     changes.set(diff.name, {
                         name: diff.name,
-                        operation: Operation.Moved | (baseConstraint !== headConstraint ? Operation.Updated : 0),
-                        section: diff.operation === Operation.Added ? Section.Dev : Section.Prod,
+                        operation: Operation.Moved |
+                            (baseConstraint !== headConstraint
+                                ? Operation.Updated
+                                : 0),
+                        section: diff.operation === Operation.Added
+                            ? Section.Dev
+                            : Section.Prod,
                         base: baseConstraint,
                         head: headConstraint,
                     });
@@ -107,7 +116,7 @@ class Diff {
                     changes.set(basePackage, {
                         name: basePackage,
                         operation: Operation.Updated,
-                        section: section === 'require' ? Section.Prod : Section.Dev,
+                        section: section === "require" ? Section.Prod : Section.Dev,
                         base: baseConstraint,
                         head: headObj[section][basePackage],
                     });
@@ -117,7 +126,7 @@ class Diff {
                 changes.set(basePackage, {
                     name: basePackage,
                     operation: Operation.Removed,
-                    section: section === 'require' ? Section.Prod : Section.Dev,
+                    section: section === "require" ? Section.Prod : Section.Dev,
                     base: baseConstraint,
                     head: null,
                 });
@@ -128,7 +137,7 @@ class Diff {
                 changes.set(headPackage, {
                     name: headPackage,
                     operation: Operation.Added,
-                    section: section === 'require' ? Section.Prod : Section.Dev,
+                    section: section === "require" ? Section.Prod : Section.Dev,
                     base: null,
                     head: headConstraint,
                 });
@@ -143,7 +152,7 @@ class Diff {
             path: path,
             ref: baseRef,
             mediaType: {
-                format: 'raw',
+                format: "raw",
             },
         });
         const head = this.octokit.rest.repos.getContent({
@@ -152,7 +161,7 @@ class Diff {
             path: path,
             ref: headRef,
             mediaType: {
-                format: 'raw',
+                format: "raw",
             },
         });
         return Promise.all([base, head]).then((result) => {
@@ -163,22 +172,33 @@ class Diff {
             }
             const baseObj = JSON.parse(base);
             const headObj = JSON.parse(head);
-            const changes = this.parseLockChanges(baseObj, headObj, 'packages');
-            for (const diff of this.parseLockChanges(baseObj, headObj, 'packages-dev').values()) {
+            const changes = this.parseLockChanges(baseObj, headObj, "packages");
+            for (const diff of this.parseLockChanges(baseObj, headObj, "packages-dev").values()) {
                 const prodDiff = changes.get(diff.name);
                 if (prodDiff) {
                     // Change for the same package exists already.
-                    const basePackage = diff.operation === Operation.Added ? prodDiff.base : diff.base;
-                    const headPackage = diff.operation === Operation.Added ? diff.head : prodDiff.head;
-                    const operation = Operation.Moved | (lodash_1.default.isEqual(basePackage, headPackage) ? 0 : Operation.Updated);
+                    const basePackage = diff.operation === Operation.Added
+                        ? prodDiff.base
+                        : diff.base;
+                    const headPackage = diff.operation === Operation.Added
+                        ? diff.head
+                        : prodDiff.head;
+                    const operation = Operation.Moved |
+                        (lodash_1.default.isEqual(basePackage, headPackage)
+                            ? 0
+                            : Operation.Updated);
                     changes.set(diff.name, {
                         name: diff.name,
                         operation: operation,
-                        section: diff.operation === Operation.Added ? Section.Dev : Section.Prod,
+                        section: diff.operation === Operation.Added
+                            ? Section.Dev
+                            : Section.Prod,
                         direct: false,
                         base: basePackage,
                         head: headPackage,
-                        link: operation & Operation.Updated ? generateOnlineDiffLink(basePackage.source, headPackage.source) : null,
+                        link: operation & Operation.Updated
+                            ? generateOnlineDiffLink(basePackage.source, headPackage.source)
+                            : null,
                     });
                 }
                 else {
@@ -204,7 +224,7 @@ class Diff {
                 if (basePkg.version !== headPkg.version) {
                     changes.set(basePkg.name, {
                         name: basePkg.name,
-                        section: section === 'packages' ? Section.Prod : Section.Dev,
+                        section: section === "packages" ? Section.Prod : Section.Dev,
                         operation: Operation.Updated,
                         direct: false,
                         base: {
@@ -222,7 +242,7 @@ class Diff {
             else {
                 changes.set(basePkg.name, {
                     name: basePkg.name,
-                    section: section === 'packages' ? Section.Prod : Section.Dev,
+                    section: section === "packages" ? Section.Prod : Section.Dev,
                     operation: Operation.Removed,
                     direct: false,
                     base: {
@@ -238,7 +258,7 @@ class Diff {
             if (!basePackages.has(headPkg.name)) {
                 changes.set(headPkg.name, {
                     name: headPkg.name,
-                    section: section === 'packages' ? Section.Prod : Section.Dev,
+                    section: section === "packages" ? Section.Prod : Section.Dev,
                     operation: Operation.Added,
                     direct: false,
                     base: null,
@@ -258,8 +278,9 @@ function generateOnlineDiffLink(a, b) {
     if (a === b) {
         return null;
     }
-    if (a.type === 'git' && b.type === 'git') {
-        if (parseGitHubUrl(a.url) && parseGitHubUrl(a.url) === parseGitHubUrl(b.url)) {
+    if (a.type === "git" && b.type === "git") {
+        if (parseGitHubUrl(a.url) &&
+            parseGitHubUrl(a.url) === parseGitHubUrl(b.url)) {
             return `https://github.com/${parseGitHubUrl(a.url)}/compare/${a.reference}...${b.reference}`;
         }
     }
@@ -315,8 +336,8 @@ const diff_1 = __nccwpck_require__(2484);
 const markdownRenderer_1 = __nccwpck_require__(238);
 async function run() {
     try {
-        const octokit = (0, github_1.getOctokit)(core.getInput('token'));
-        const composerJson = core.getInput('path').replace(/^\/+/, '');
+        const octokit = (0, github_1.getOctokit)(core.getInput("token"));
+        const composerJson = core.getInput("path").replace(/^\/+/, "");
         const differ = new diff_1.Diff(octokit);
         const commentCanary = `<!-- cs278/composer-rich-diff:${composerJson} -->\n\n`;
         if (github_1.context.payload.pull_request) {
@@ -324,44 +345,58 @@ async function run() {
             // run against an old commit don't replace the comment with out of date
             // information.
             const diff = await differ.generate(github_1.context.repo.owner, github_1.context.repo.repo, github_1.context.payload.pull_request.base.sha, github_1.context.payload.pull_request.head.sha, composerJson);
-            const message = (0, markdownRenderer_1.render)(composerJson, github_1.context.payload.pull_request.base.sha, github_1.context.payload.pull_request.head.sha, diff);
             const commentId = await findCommentId(octokit, github_1.context, commentCanary);
-            if (commentId) {
-                await octokit.rest.issues.updateComment({
-                    ...github_1.context.repo,
-                    issue_number: github_1.context.payload.pull_request.number,
-                    comment_id: commentId,
-                    body: commentCanary + message,
-                });
+            if (diff.manifest.size > 0 || diff.lock.size > 0) {
+                const message = (0, markdownRenderer_1.render)(composerJson, github_1.context.payload.pull_request.base.sha, github_1.context.payload.pull_request.head.sha, diff);
+                if (commentId) {
+                    await octokit.rest.issues.updateComment({
+                        ...github_1.context.repo,
+                        issue_number: github_1.context.payload.pull_request.number,
+                        comment_id: commentId,
+                        body: commentCanary + message,
+                    });
+                }
+                else {
+                    await octokit.rest.issues.createComment({
+                        ...github_1.context.repo,
+                        issue_number: github_1.context.payload.pull_request.number,
+                        body: commentCanary + message,
+                    });
+                }
             }
             else {
-                await octokit.rest.issues.createComment({
-                    ...github_1.context.repo,
-                    issue_number: github_1.context.payload.pull_request.number,
-                    body: commentCanary + message,
-                });
+                if (commentId) {
+                    await octokit.rest.issues.deleteComment({
+                        ...github_1.context.repo,
+                        issue_number: github_1.context.payload.pull_request.number,
+                        comment_id: commentId,
+                    });
+                }
+                // Otherwise do nothing...
             }
         }
     }
     catch (error) {
         if (error instanceof Error) {
-            core.info(error.stack || 'No stack trace');
+            core.info(error.stack || "No stack trace");
             core.setFailed(error);
         }
         else {
-            core.setFailed('Unknown error');
+            core.setFailed("Unknown error");
         }
     }
 }
 async function findCommentId(octokit, context, commentCanary) {
-    return octokit.rest.issues.listComments({
+    return octokit.rest.issues
+        .listComments({
         ...context.repo,
         issue_number: context.payload.pull_request.number,
-    }).then((response) => {
+    })
+        .then((response) => {
         const comments = response.data;
         const comment = comments.find((comment) => {
-            return comment.user.login === 'github-actions[bot]'
-                && comment.body.startsWith(commentCanary);
+            return (comment.user.login === "github-actions[bot]" &&
+                comment.body.startsWith(commentCanary));
         });
         return comment ? comment.id : null;
     });
@@ -383,9 +418,9 @@ function render(composerJson, baseRef, headRef, diff) {
     const message = new Array();
     message.push(`## Changes to \`${composerJson}\``);
     if (diff.manifest.size > 0) {
-        message.push('### Changes to requirements');
-        message.push('| Package | Section | Operation | Base Constraint | Head Constraint |');
-        message.push('| ------- | ------- | --------- | --------------- | --------------- |');
+        message.push("### Changes to requirements");
+        message.push("| Package | Section | Operation | Base Constraint | Head Constraint |");
+        message.push("| ------- | ------- | --------- | --------------- | --------------- |");
         const manifestChanges = Array.from(diff.manifest.values());
         manifestChanges.sort((a, b) => {
             if (a.section === b.section) {
@@ -398,31 +433,35 @@ function render(composerJson, baseRef, headRef, diff) {
         });
         manifestChanges.forEach((entry) => {
             const row = new Array();
-            let operationText = '';
+            let operationText = "";
             if (entry.operation & diff_1.Operation.Updated) {
-                operationText = 'Updated';
+                operationText = "Updated";
             }
             if (entry.operation & diff_1.Operation.Added) {
-                operationText = '**Added**';
+                operationText = "**Added**";
             }
             if (entry.operation & diff_1.Operation.Removed) {
-                operationText = 'Removed';
+                operationText = "Removed";
             }
             if (entry.operation & diff_1.Operation.Moved) {
-                operationText = operationText ? operationText + ' & Moved[^Moved]' : 'Moved[^Moved]';
+                operationText = operationText
+                    ? operationText + " & Moved[^Moved]"
+                    : "Moved[^Moved]";
             }
             row[0] = `\`${entry.name}\``;
-            row[1] = entry.section === diff_1.Section.Prod ? 'Prod' : 'Dev';
+            row[1] = entry.section === diff_1.Section.Prod ? "Prod" : "Dev";
             row[2] = operationText;
-            row[3] = entry.operation & diff_1.Operation.Added ? '' : `\`${entry.base}\``;
-            row[4] = entry.operation & diff_1.Operation.Removed ? '' : `\`${entry.head}\``;
-            message.push('| ' + row.join(' | ') + ' |');
+            row[3] =
+                entry.operation & diff_1.Operation.Added ? "" : `\`${entry.base}\``;
+            row[4] =
+                entry.operation & diff_1.Operation.Removed ? "" : `\`${entry.head}\``;
+            message.push("| " + row.join(" | ") + " |");
         });
     }
     if (diff.lock.size > 0) {
-        message.push('### Changes to locked packages');
-        message.push('| Package | Section | Direct | Operation | Base Version | Head Version | Link |');
-        message.push('| ------- | ------- | ------ | --------- | ------------ | ------------ | ----');
+        message.push("### Changes to locked packages");
+        message.push("| Package | Section | Direct | Operation | Base Version | Head Version | Link |");
+        message.push("| ------- | ------- | ------ | --------- | ------------ | ------------ | ----");
         const lockChanges = Array.from(diff.lock.values());
         lockChanges.sort((a, b) => {
             if (a.section === b.section) {
@@ -435,35 +474,46 @@ function render(composerJson, baseRef, headRef, diff) {
         });
         lockChanges.forEach((entry) => {
             const row = new Array();
-            let operationText = '';
+            let operationText = "";
             if (entry.operation & diff_1.Operation.Updated) {
-                operationText = 'Updated';
+                operationText = "Updated";
             }
             if (entry.operation & diff_1.Operation.Added) {
-                operationText = '**Added**';
+                operationText = "**Added**";
             }
             if (entry.operation & diff_1.Operation.Removed) {
-                operationText = 'Removed';
+                operationText = "Removed";
             }
             if (entry.operation & diff_1.Operation.Moved) {
-                operationText = operationText ? operationText + ' & Moved[^Moved]' : 'Moved[^Moved]';
+                operationText = operationText
+                    ? operationText + " & Moved[^Moved]"
+                    : "Moved[^Moved]";
             }
             row[0] = `\`${entry.name}\``;
-            row[1] = entry.section === diff_1.Section.Prod ? 'Prod' : 'Dev';
-            row[2] = entry.direct ? 'Yes' : 'No';
+            row[1] = entry.section === diff_1.Section.Prod ? "Prod" : "Dev";
+            row[2] = entry.direct ? "Yes" : "No";
             row[3] = operationText;
-            row[4] = entry.operation & diff_1.Operation.Added ? 'Absent' : `\`${entry.base.version}\``;
-            row[5] = entry.operation & diff_1.Operation.Removed ? 'Absent' : `\`${entry.head.version}\``;
-            row[6] = entry.operation & diff_1.Operation.Updated && entry.link ? `[Diff](${entry.link})` : '';
-            message.push('| ' + row.join(' | ') + ' |');
+            row[4] =
+                entry.operation & diff_1.Operation.Added
+                    ? "Absent"
+                    : `\`${entry.base.version}\``;
+            row[5] =
+                entry.operation & diff_1.Operation.Removed
+                    ? "Absent"
+                    : `\`${entry.head.version}\``;
+            row[6] =
+                entry.operation & diff_1.Operation.Updated && entry.link
+                    ? `[Diff](${entry.link})`
+                    : "";
+            message.push("| " + row.join(" | ") + " |");
         });
     }
-    message.push('');
-    message.push('---');
+    message.push("");
+    message.push("---");
     message.push(`Generated using ${baseRef} and ${headRef}`);
-    message.push('');
-    message.push('[^Moved]: Depepdency was moved from the non-dev section to dev section or vice versa.');
-    return message.join('\n');
+    message.push("");
+    message.push("[^Moved]: Depepdency was moved from the non-dev section to dev section or vice versa.");
+    return message.join("\n");
 }
 exports.render = render;
 
