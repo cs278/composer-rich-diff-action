@@ -138,7 +138,7 @@ export function render(
     message.push(`Generated using ${baseRef} and ${headRef}`);
     message.push("");
     message.push(
-        "[^Moved]: Depepdency was moved from the non-dev section to dev section or vice versa."
+        "[^Moved]: Dependency was moved from the non-dev section to dev section or vice versa."
     );
 
     return message.join("\n");
