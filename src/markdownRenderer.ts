@@ -55,14 +55,14 @@ export function render(
                     : "Moved[^Moved]";
             }
 
-            row[0] = `\`${entry.name}\``;
+            row[0] = renderInlineCodeInsideTableCell(entry.name);
             row[1] = entry.section === Section.Prod ? "Prod" : "Dev";
             row[2] = operationText;
             row[3] =
-                entry.operation & Operation.Added ? "" : `\`${entry.base}\``;
+                entry.operation & Operation.Added ? "" : renderInlineCodeInsideTableCell(entry.base);
             row[4] =
-                entry.operation & Operation.Removed ? "" : `\`${entry.head}\``;
-
+                entry.operation & Operation.Removed ? "" : renderInlineCodeInsideTableCell(entry.head);
+``
             message.push("| " + row.join(" | ") + " |");
         });
     }
@@ -142,4 +142,32 @@ export function render(
     );
 
     return message.join("\n");
+}
+
+/**
+ * Workaround problem with GHFM whereby an inline code block inside a table cell
+ * cannot contain a pipe without breaking the table.
+ *
+ * https://stackoverflow.com/a/17320389
+ */
+function renderInlineCodeInsideTableCell(content: string|null): string {
+    if (content === null) {
+        return '';
+    }
+
+    if (content.indexOf('|') >= 0) {
+        content = htmlEscape(content).replace(/\|/g, '&#124;');
+
+        return `<code>${content}</code>`;
+    }
+
+    return `\`${content}\``;
+}
+
+function htmlEscape(content: string): string {
+    return content
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
 }
