@@ -190,7 +190,7 @@ export class Diff {
         for (const [basePackage, baseConstraint] of Object.entries<string>(
             baseObj[section] || {}
         )) {
-            if (headObj[section][basePackage]) {
+            if (headObj[section] && headObj[section][basePackage]) {
                 if (headObj[section][basePackage] !== baseConstraint) {
                     changes.set(basePackage, {
                         name: basePackage,
@@ -215,7 +215,7 @@ export class Diff {
         for (const [headPackage, headConstraint] of Object.entries<string>(
             headObj[section] || {}
         )) {
-            if (!baseObj[section][headPackage]) {
+            if (!baseObj[section] || !baseObj[section][headPackage]) {
                 changes.set(headPackage, {
                     name: headPackage,
                     operation: Operation.Added,
