@@ -59,7 +59,7 @@ class Diff {
             mediaType: {
                 format: "raw",
             },
-        });
+        }).catch(handle404);
         const head = this.octokit.rest.repos.getContent({
             owner: owner,
             repo: repo,
@@ -68,15 +68,18 @@ class Diff {
             mediaType: {
                 format: "raw",
             },
-        });
+        }).catch(handle404);
         return Promise.all([base, head]).then((result) => {
             const base = result[0].data.trim();
             const head = result[1].data.trim();
+            const baseObj = JSON.parse(base);
+            const headObj = JSON.parse(head);
+            if (lodash_1.default.isEmpty(baseObj) && lodash_1.default.isEmpty(headObj)) {
+                throw new Error(`${path} was empty on both references (or repository, ${owner}/${repo}, does not exist)`);
+            }
             if (base === head) {
                 return new ManifestDiff();
             }
-            const baseObj = JSON.parse(base);
-            const headObj = JSON.parse(head);
             const changes = this.parseManifestChanges(baseObj, headObj, "require");
             for (const diff of this.parseManifestChanges(baseObj, headObj, "require-dev").values()) {
                 const prodDiff = changes.get(diff.name);
@@ -111,7 +114,7 @@ class Diff {
     parseManifestChanges(baseObj, headObj, section) {
         const changes = new ManifestDiff();
         for (const [basePackage, baseConstraint] of Object.entries(baseObj[section] || {})) {
-            if (headObj[section][basePackage]) {
+            if (headObj[section] && headObj[section][basePackage]) {
                 if (headObj[section][basePackage] !== baseConstraint) {
                     changes.set(basePackage, {
                         name: basePackage,
@@ -133,7 +136,7 @@ class Diff {
             }
         }
         for (const [headPackage, headConstraint] of Object.entries(headObj[section] || {})) {
-            if (!baseObj[section][headPackage]) {
+            if (!baseObj[section] || !baseObj[section][headPackage]) {
                 changes.set(headPackage, {
                     name: headPackage,
                     operation: Operation.Added,
@@ -154,7 +157,7 @@ class Diff {
             mediaType: {
                 format: "raw",
             },
-        });
+        }).catch(handle404);
         const head = this.octokit.rest.repos.getContent({
             owner: owner,
             repo: repo,
@@ -163,7 +166,7 @@ class Diff {
             mediaType: {
                 format: "raw",
             },
-        });
+        }).catch(handle404);
         return Promise.all([base, head]).then((result) => {
             const base = result[0].data.trim();
             const head = result[1].data.trim();
@@ -296,6 +299,17 @@ function parseGitHubUrl(url) {
         return result[1];
     }
     return null;
+}
+/**
+ * Convert 404 response into empty JSON document.
+ */
+function handle404(error) {
+    if (error.status === 404) {
+        return new Promise((resolve) => {
+            resolve({ data: "{}" });
+        });
+    }
+    throw error;
 }
 
 
