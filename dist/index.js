@@ -282,7 +282,7 @@ function generateOnlineDiffLink(a, b) {
     if (a === b) {
         return null;
     }
-    if (a.type === "git" && b.type === "git") {
+    if ((a === null || a === void 0 ? void 0 : a.type) === "git" && (b === null || b === void 0 ? void 0 : b.type) === "git") {
         if (parseGitHubUrl(a.url) &&
             parseGitHubUrl(a.url) === parseGitHubUrl(b.url)) {
             return `https://github.com/${parseGitHubUrl(a.url)}/compare/${a.reference}...${b.reference}`;

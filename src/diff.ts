@@ -402,14 +402,14 @@ export class Diff {
 }
 
 function generateOnlineDiffLink(
-    a: PackageSource,
-    b: PackageSource
+    a: PackageSource | null,
+    b: PackageSource | null
 ): string | null {
     if (a === b) {
         return null;
     }
 
-    if (a.type === "git" && b.type === "git") {
+    if (a?.type === "git" && b?.type === "git") {
         if (
             parseGitHubUrl(a.url) &&
             parseGitHubUrl(a.url) === parseGitHubUrl(b.url)
