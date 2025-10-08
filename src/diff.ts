@@ -1,4 +1,5 @@
-import _ from "lodash";
+import isEmpty from "lodash.isempty";
+import { isDeepStrictEqual as isEqual } from "node:util";
 import { RequestError } from "@octokit/request-error";
 
 export enum Section {
@@ -125,7 +126,7 @@ export class Diff {
             const baseObj = JSON.parse(base);
             const headObj = JSON.parse(head);
 
-            if (_.isEmpty(baseObj) && _.isEmpty(headObj)) {
+            if (isEmpty(baseObj) && isEmpty(headObj)) {
                 throw new Error(`${path} was empty on both references (or repository, ${owner}/${repo}, does not exist)`);
             }
 
@@ -288,7 +289,7 @@ export class Diff {
                             : prodDiff.head;
                     const operation =
                         Operation.Moved |
-                        (_.isEqual(basePackage, headPackage)
+                        (isEqual(basePackage, headPackage)
                             ? 0
                             : Operation.Updated);
 
@@ -401,14 +402,14 @@ export class Diff {
 }
 
 function generateOnlineDiffLink(
-    a: PackageSource,
-    b: PackageSource
+    a: PackageSource | null,
+    b: PackageSource | null
 ): string | null {
     if (a === b) {
         return null;
     }
 
-    if (a.type === "git" && b.type === "git") {
+    if (a?.type === "git" && b?.type === "git") {
         if (
             parseGitHubUrl(a.url) &&
             parseGitHubUrl(a.url) === parseGitHubUrl(b.url)
